@@ -1,134 +1,302 @@
-# AiTool（单端口：前端 + API + WebSocket）
+# AI 面试助手
 
-一个用于“面试问答 + 语音识别（ASR）”的 Web 应用，内置**用户注册/登录**、**用户设置**与**管理员后台**。项目采用**单端口部署**：同一个端口同时提供前端静态页面、HTTP API 与 WebSocket。
+一个基于 AI 的智能面试辅助系统，支持实时语音识别、简历解析、智能回答生成和充值付费功能。
 
-## 功能一览
+## 📋 项目简介
 
-- **面试问答**
-  - `POST /api/answer` 调用大模型生成回答（需登录）
-  - 支持“本页临时 Prompt”（只对当前页面/本次请求生效，不会写回服务器配置）
-- **ASR 语音识别**
-  - WebSocket：`/ws/asr`（需登录）
-- **账号系统（SQLite + Cookie Session）**
-  - 注册：用户名唯一校验、密码强度校验（≥8 位，且包含字母 + 数字）
-  - 登录：失败次数限制（连续 5 次失败锁定 10 分钟）、登录日志（IP/时间/UA）
-  - 退出登录：`POST /api/auth/logout`
-  - 7 天免登：Session Cookie 默认 `maxAge=7天`（无需 JWT）
-- **用户信息管理**
-  - 用户名不可改
-  - 邮箱绑定/换绑
-  - 修改密码
-- **管理员后台**
-  - 用户列表查询、编辑邮箱/状态、软删除
-  - 查看登录日志
+AI 面试助手是一个全栈应用，旨在帮助求职者更好地准备面试。系统通过实时语音识别捕获面试官的问题，结合用户上传的简历信息，利用大语言模型生成专业、个性化的回答建议。
 
-## 技术栈
+### 核心功能
 
-- **前端**：React + TypeScript + Vite + Tailwind（shadcn/ui 风格）
-- **后端**：Node.js + Express + WebSocket(`ws`)
-- **鉴权**：`express-session` + SQLite session store（`better-sqlite3-session-store`）
-- **数据库**：SQLite（`better-sqlite3`）
+- 🎤 **实时语音识别**：集成讯飞 ASR，实时转录面试官的问题
+- 📄 **简历智能解析**：支持 PDF/Word 格式，包含 OCR 识别扫描文档
+- 🤖 **AI 智能回答**：基于简历和职位信息生成个性化回答
+- 💰 **充值付费系统**：支持支付宝支付，按面试时长计费
+- 👨‍💼 **管理员后台**：用户管理、套餐管理、数据统计
+- 🔐 **用户认证**：JWT 认证，支持管理员权限控制
 
-## 目录结构（简要）
+## 🛠️ 技术栈
 
-主要代码都在 `app/` 下：
+### 前端技术
+- **框架**：React 18 + TypeScript
+- **构建工具**：Vite
+- **UI 组件**：shadcn/ui + Tailwind CSS
+- **状态管理**：Zustand
+- **音频处理**：AudioContext + AudioWorklet
+- **网络请求**：Fetch API
 
-- `app/src/`：前端源码（路由入口 `app/src/App.tsx`）
-- `app/server/`：后端源码（入口 `app/server/index.cjs`）
-- `app/server/config/`：运行时配置（支持热加载）
-  - `prompt_config.json`
-  - `llm_config.json`
-  - `asr_config.json`
-- `app/server/data/`：SQLite 数据库（`app.db`）
+### 后端技术
+- **运行时**：Node.js
+- **Web 框架**：Express
+- **数据库**：SQLite (better-sqlite3)
+- **认证**：JWT + bcrypt
+- **WebSocket**：ws 库
+- **文件处理**：multer + pdfjs-dist + Tesseract.js
 
-更详细的拆分说明见：`app/README.arch.md`。
+### 第三方服务
+- **语音识别**：讯飞实时语音识别 API
+- **大语言模型**：OpenAI/SiliconFlow 兼容接口
+- **支付**：支付宝支付
+- **OCR**：Tesseract.js
 
-## 快速开始（开发 / 本地）
+## 📦 项目结构
 
-### 1）安装依赖
+```
+app/
+├── src/                    # 前端源码
+│   ├── components/         # UI 组件
+│   ├── sections/           # 页面组件
+│   ├── hooks/              # 自定义 Hooks
+│   ├── types/              # TypeScript 类型定义
+│   └── App.tsx             # 应用入口
+├── server/                 # 后端源码
+│   ├── config/             # 配置文件
+│   │   ├── asr_config.json         # 讯飞 ASR 配置
+│   │   ├── prompt_config.json      # Prompt 配置
+│   │   └── payment_config.json     # 支付配置
+│   ├── db/                 # 数据库
+│   │   └── database.cjs    # SQLite 数据库初始化
+│   ├── routes/             # API 路由
+│   │   ├── auth.cjs        # 认证相关
+│   │   ├── upload.cjs      # 文件上传
+│   │   ├── recharge.cjs    # 充值功能
+│   │   ├── payment.cjs     # 支付功能
+│   │   ├── interview.cjs   # 面试管理
+│   │   └── admin_recharge.cjs # 管理员充值管理
+│   └── index.cjs           # 服务器入口
+├── test/                   # 测试文件
+├── package.json
+└── README.md
+```
+
+## 🚀 快速开始
+
+### 环境要求
+
+- Node.js >= 16.0.0
+- npm >= 7.0.0
+
+### 安装依赖
 
 ```bash
 cd app
 npm install
 ```
 
-### 2）启动服务（单端口）
+### 配置文件
+
+#### 1. 讯飞 ASR 配置
+
+编辑 `server/config/asr_config.json`：
+
+```json
+{
+  "app_id": "你的讯飞应用ID",
+  "api_key": "你的讯飞API Key",
+  "api_secret": "你的讯飞API Secret",
+  "business": {
+    "language": "zh_cn",
+    "domain": "iat",
+    "accent": "mandarin",
+    "vad_eos": 60000,
+    "dwa": "wpgs"
+  }
+}
+```
+
+#### 2. 大模型配置
+
+编辑 `server/config/prompt_config.json`：
+
+```json
+{
+  "api_base": "https://api.openai.com/v1",
+  "api_key": "你的API Key",
+  "model": "gpt-3.5-turbo",
+  "system_prompt": "你是一个面试助手...",
+  "task": "根据问题，结合自身简历与项目经历，给出简洁、专业的回答。"
+}
+```
+
+#### 3. 支付宝配置
+
+编辑 `server/config/payment_config.json`：
+
+```json
+{
+  "alipay": {
+    "app_id": "支付宝应用ID",
+    "private_key": "应用私钥",
+    "public_key": "支付宝公钥",
+    "notify_url": "支付回调地址",
+    "return_url": "支付返回地址"
+  }
+}
+```
+
+### 启动服务
 
 ```bash
-cd app
 npm run server
 ```
 
-默认监听：`http://localhost:8080`
+访问 http://localhost:8000 即可使用。
 
-> 说明：本项目后端会托管 `app/dist/` 的静态文件。若你修改了前端代码，需要先构建一次。
-
-### 3）构建并启动（推荐给“像生产一样跑”的方式）
+### 构建生产版本
 
 ```bash
-cd app
-npm run start
+npm run build
 ```
 
-## 账号与管理员
+## 📖 功能说明
 
-### 注册/登录入口
+### 1. 用户认证
 
-- 登录页：`/login`
-- 注册页：`/register`
+- 用户注册/登录
+- JWT Token 认证
+- 管理员权限控制
+- 登录日志记录
 
-登录后右上角可进入：
-- **账号设置**：`/settings`
-- **管理员后台**（仅管理员可见）：`/admin`
-- **退出登录**
+### 2. 简历管理
 
-### 一键创建管理员（admin/admin）
+- 支持 PDF 和 Word 格式上传
+- PDF 文本自动提取
+- OCR 识别扫描版 PDF
+- 简历信息结构化解析
 
-```bash
-cd app
-node server/scripts/create-admin.cjs
-```
+### 3. 面试流程
 
-## 配置（支持热加载）
+1. **上传简历**：上传并解析简历信息
+2. **选择职位**：选择目标面试职位
+3. **音频设置**：配置系统音频捕获
+4. **开始面试**：
+   - 实时语音识别面试官问题
+   - 1 秒静默检测问题结束
+   - AI 自动生成回答建议
+   - 实时显示剩余时长
+5. **结束面试**：自动扣除使用时长
 
-修改以下文件后，**无需重启**，下次请求会自动读取新配置：
+### 4. 充值付费
 
-- `app/server/config/prompt_config.json`
-- `app/server/config/llm_config.json`
-- `app/server/config/asr_config.json`
+- 多种充值套餐选择
+- 支付宝在线支付
+- 实时余额显示
+- 充值记录查询
+- 按实际使用时长计费
 
-## 生产环境注意事项
+### 5. 管理员功能
 
-- **必须设置 `SESSION_SECRET`**（否则服务会拒绝启动）：
+- 用户管理（查看、禁用）
+- 充值套餐管理
+- 充值记录查询
+- Prompt 模板管理
+- 登录日志查看
+- 数据统计概览
 
-```powershell
-$env:NODE_ENV="production"
-$env:SESSION_SECRET="请换成随机长字符串"
-cd app
-npm run start
-```
+## 🔧 API 接口
 
-- **HTTPS / WSS**：若通过反向代理或内网穿透对外提供服务，请确保代理正确转发 WebSocket，并在外部使用 `https` / `wss`。
+### 认证相关
 
-## 主要接口速查
+- `POST /api/auth/register` - 用户注册
+- `POST /api/auth/login` - 用户登录
+- `POST /api/auth/logout` - 用户登出
+- `GET /api/auth/me` - 获取当前用户信息
 
-认证：
-- `POST /api/auth/register` `{ username, password }`
-- `POST /api/auth/login` `{ username, password }`
-- `POST /api/auth/logout`
-- `GET /api/auth/me`
+### 简历相关
 
-用户（需登录）：
-- `POST /api/user/email` `{ email }`
-- `POST /api/user/password` `{ old_password, new_password }`
+- `POST /api/upload/resume` - 上传简历
+- `GET /api/upload/resume` - 获取简历信息
 
-管理员（需管理员）：
-- `GET /api/admin/users?q=&limit=&offset=`
-- `PATCH /api/admin/users/:id` `{ status?, email? }`
-- `DELETE /api/admin/users/:id`（软删除）
-- `GET /api/admin/login-logs?limit=`
+### 面试相关
 
-业务：
-- `POST /api/answer`
-- `WS /ws/asr`
+- `POST /api/interview/start` - 开始面试
+- `POST /api/interview/end` - 结束面试
+- `GET /api/interview/current` - 获取当前会话
+- `GET /api/interview/history` - 获取面试历史
 
+### 充值相关
+
+- `GET /api/recharge/plans` - 获取充值套餐
+- `GET /api/recharge/balance` - 获取用户余额
+- `GET /api/recharge/records` - 获取充值记录
+
+### 支付相关
+
+- `POST /api/payment/create` - 创建支付订单
+- `POST /api/payment/alipay/notify` - 支付宝回调
+- `GET /api/payment/status/:id` - 查询订单状态
+
+### 管理员接口
+
+- `GET /api/admin/users` - 获取用户列表
+- `PUT /api/admin/users/:id` - 更新用户信息
+- `GET /api/admin/login-logs` - 获取登录日志
+- `POST /api/admin/recharge/plans` - 创建充值套餐
+- `PUT /api/admin/recharge/plans/:id` - 更新套餐
+- `DELETE /api/admin/recharge/plans/:id` - 删除套餐
+
+## 🎨 界面预览
+
+### 主要页面
+
+1. **登录页面**：用户认证入口
+2. **欢迎页面**：职位选择和开始面试
+3. **简历上传**：上传和解析简历
+4. **音频设置**：配置系统音频捕获
+5. **面试界面**：实时语音识别和 AI 回答
+6. **充值中心**：套餐选择和支付
+7. **管理员后台**：系统管理控制台
+
+## 🔒 安全特性
+
+- 密码 bcrypt 加密存储
+- JWT Token 认证机制
+- SQL 注入防护
+- XSS 攻击防护
+- 支付签名验证
+- 文件上传类型验证
+
+## 📊 数据库设计
+
+### 主要数据表
+
+- `users` - 用户信息
+- `sessions` - 会话管理
+- `login_logs` - 登录日志
+- `resumes` - 简历信息
+- `prompts` - Prompt 模板
+- `pricing_plans` - 充值套餐
+- `recharge_records` - 充值记录
+- `interview_sessions` - 面试会话
+
+## 🤝 贡献指南
+
+欢迎提交 Issue 和 Pull Request！
+
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 开启 Pull Request
+
+## 📄 许可证
+
+本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
+
+## 🙏 致谢
+
+- [讯飞开放平台](https://www.xfyun.cn/) - 语音识别服务
+- [OpenAI](https://openai.com/) - 大语言模型
+- [shadcn/ui](https://ui.shadcn.com/) - UI 组件库
+- [Tesseract.js](https://tesseract.projectnaptha.com/) - OCR 引擎
+
+## 📞 联系方式
+
+如有问题或建议，欢迎通过以下方式联系：
+
+- 提交 GitHub Issue
+- 发送邮件至：your-email@example.com
+
+---
+
+**注意**：本项目仅供学习和研究使用，请勿用于商业用途。使用前请确保遵守相关服务条款和法律法规。
