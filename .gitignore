@@ -1,0 +1,16 @@
+node_modules/
+dist/
+*.db
+*.db-shm
+*.db-wal
+server.err.log
+server.out.log
+server/uploads/
+app/server/data/users.db
+app/server/data/users.db-shm
+app/server/data/users.db-wal
+app/server/config/asr_config.json
+app/server/config/llm_config.json
+app/server/config/payment_config.json
+app/server/config/prompt_config.json
+app/dist/
