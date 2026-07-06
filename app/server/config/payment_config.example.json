@@ -1,0 +1,16 @@
+{
+  "//_comment": "支付宝支付配置。请填写真实的支付宝应用信息。",
+  "alipay": {
+    "app_id": "你的支付宝应用ID",
+    "private_key": "你的应用私钥",
+    "public_key": "支付宝公钥",
+    "notify_url": "http://localhost:8000/api/payment/alipay/notify",
+    "return_url": "http://localhost:8000/payment/return"
+  },
+  "//_comment": "支付配置说明：",
+  "//_comment_app_id": "支付宝应用ID，需要在支付宝开放平台申请",
+  "//_comment_private_key": "支付宝应用私钥，用于签名请求",
+  "//_comment_public_key": "支付宝应用公钥，用于验证回调签名",
+  "//_comment_notify_url": "支付异步通知地址，支付宝会调用此接口",
+  "//_comment_return_url": "支付同步返回地址，用户支付完成后跳转"
+}

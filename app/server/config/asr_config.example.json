@@ -1,0 +1,15 @@
+{
+  "//_comment": "讯飞实时语音听写（流式版）配置。你只需要改这里的值，无需改代码。",
+  "iat_url": "wss://iat-api.xfyun.cn/v2/iat",
+  "app_id": "你的讯飞应用ID",
+  "api_key": "你的讯飞API Key",
+  "api_secret": "你的讯飞API Secret",
+  "business": {
+    "//_comment": "以下为业务参数，字段含义与讯飞官方文档完全一致，可按需修改。",
+    "language": "zh_cn",
+    "domain": "iat",
+    "accent": "mandarin",
+    "vad_eos": 60000,
+    "dwa": "wpgs"
+  }
+}
