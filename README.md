@@ -76,75 +76,107 @@ app/
 - Node.js >= 16.0.0
 - npm >= 7.0.0
 
-### 安装依赖
+### 一键部署
 
 ```bash
-cd app
+# 1. 克隆仓库
+git clone https://github.com/ChinaLbwNb/AiTool-for-Interview.git
+cd AiTool-for-Interview/app
+
+# 2. 安装依赖
 npm install
+
+# 3. 启动服务（首次启动会自动从 .example.json 生成配置文件）
+npm run server
 ```
 
-### 配置文件
+启动后访问 http://localhost:8000 即可。
 
-#### 1. 讯飞 ASR 配置
+> ⚠️ 首次启动会自动生成 4 个配置文件，但其中的 API Key 都是占位符，**必须修改为真实值后才能使用语音识别和 AI 回答功能**。
 
-编辑 `server/config/asr_config.json`：
+### 配置文件说明
+
+配置文件位于 `app/server/config/` 目录下，首次启动时会自动从 `.example.json` 生成。你需要修改以下配置：
+
+#### 1. 讯飞 ASR 语音识别配置 (`asr_config.json`)
+
+> 申请地址：[讯飞开放平台 - 语音听写](https://www.xfyun.cn/services/iat)
 
 ```json
 {
   "app_id": "你的讯飞应用ID",
   "api_key": "你的讯飞API Key",
-  "api_secret": "你的讯飞API Secret",
-  "business": {
-    "language": "zh_cn",
-    "domain": "iat",
-    "accent": "mandarin",
-    "vad_eos": 60000,
-    "dwa": "wpgs"
+  "api_secret": "你的讯飞API Secret"
+}
+```
+
+如果不配置此项，语音识别功能将不可用，但其他功能正常。
+
+#### 2. 大模型 API 配置 (`llm_config.json`)
+
+支持多种 OpenAI 兼容接口，通过 `default_protocol` 切换：
+
+| 协议 | 说明 | 申请地址 |
+|------|------|----------|
+| `siliconflow` | 硅基流动（推荐，国内可用） | [siliconflow.cn](https://siliconflow.cn/) |
+| `openai` | OpenAI 或兼容代理 | [platform.openai.com](https://platform.openai.com/) |
+| `anthropic` | Anthropic Claude | [anthropic.com](https://console.anthropic.com/) |
+
+```json
+{
+  "default_protocol": "siliconflow",
+  "protocols": {
+    "siliconflow": {
+      "base_url": "https://api.siliconflow.cn/v1",
+      "api_key": "你的SiliconFlow API Key",
+      "model": "Pro/MiniMaxAI/MiniMax-M2.5"
+    },
+    "openai": {
+      "base_url": "https://api.openai.com/v1",
+      "api_key": "你的OpenAI API Key",
+      "model": "gpt-3.5-turbo"
+    }
   }
 }
 ```
 
-#### 2. 大模型配置
+> 💡 `base_url` 可以替换为任意 OpenAI 兼容的代理地址。
 
-编辑 `server/config/prompt_config.json`：
+#### 3. 提示词配置 (`prompt_config.json`)
+
+自定义 AI 的角色和回答风格，无需 API Key：
 
 ```json
 {
-  "api_base": "https://api.openai.com/v1",
-  "api_key": "你的API Key",
-  "model": "gpt-3.5-turbo",
-  "system_prompt": "你是一个面试助手...",
-  "task": "根据问题，结合自身简历与项目经历，给出简洁、专业的回答。"
+  "role": "你是一名应聘者，正在参加面试",
+  "task": "根据问题，结合自身简历与项目经历，给出简洁、专业的回答。",
+  "system_prompt": "只输出简短、口语化的回答，不超过100字"
 }
 ```
 
-#### 3. 支付宝配置
+#### 4. 支付宝配置 (`payment_config.json`)
 
-编辑 `server/config/payment_config.json`：
+> 申请地址：[支付宝开放平台](https://open.alipay.com/)
 
 ```json
 {
   "alipay": {
-    "app_id": "支付宝应用ID",
+    "app_id": "你的支付宝应用ID",
     "private_key": "应用私钥",
-    "public_key": "支付宝公钥",
-    "notify_url": "支付回调地址",
-    "return_url": "支付返回地址"
+    "public_key": "支付宝公钥"
   }
 }
 ```
 
-### 启动服务
+如果不配置此项，充值功能将不可用，但面试功能不受影响。
+
+### 开发模式
 
 ```bash
-npm run server
-```
+# 仅启动前端开发服务器（无后端）
+npm run dev
 
-访问 http://localhost:8000 即可使用。
-
-### 构建生产版本
-
-```bash
+# 构建生产版本
 npm run build
 ```
 
